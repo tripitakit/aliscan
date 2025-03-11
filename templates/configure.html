@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Configure Alignment Analysis</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .header {
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e5e5;
+            margin-bottom: 2rem;
+        }
+        .sequence-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .group-container {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 10px;
+            margin-bottom: 15px;
+        }
+        .delete-group {
+            float: right;
+        }
+        .hidden-sequence {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Configure Analysis</h2>
+            <p class="lead">File: {{ filename }}</p>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <form action="/run_scan" method="post" id="configForm">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header">
+                            <h5>Available Sequences</h5>
+                        </div>
+                        <div class="card-body sequence-list">
+                            <div class="list-group">
+                                {% for seq in sequences %}
+                                <div class="list-group-item">
+                                    <div class="form-check">
+                                        <input class="form-check-input sequence-checkbox" type="checkbox" value="{{ seq.id }}" id="seq_{{ seq.id }}">
+                                        <label class="form-check-label" for="seq_{{ seq.id }}">
+                                            {{ seq.id }}. {{ seq.description }}
+                                        </label>
+                                    </div>
+                                </div>
+                                {% endfor %}
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <div class="row align-items-center">
+                                <div class="col">
+                                    <select class="form-select form-select-sm mb-2" id="targetGroupSelect" disabled>
+                                        <option value="" disabled selected>Select a group</option>
+                                        <!-- Options will be added dynamically -->
+                                    </select>
+                                </div>
+                                <div class="col">
+                                    <button type="button" class="btn btn-primary btn-sm w-100" id="addSelectedToGroup" disabled>Add Selected to Group</button>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col">
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="selectAll">Select All</button>
+                                    <button type="button" class="btn btn-outline-secondary btn-sm" id="deselectAll">Deselect All</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h5>Parameters</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <label for="ka" class="form-label">ka (Consensus coefficient)</label>
+                                <select class="form-select" id="ka" name="ka" required>
+                                    <option value="20" selected>20 - Strict</option>
+                                    <option value="10">10 - High (Majority rule high)</option>
+                                    <option value="3">3 - Low (Majority rule low)</option>
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="kb" class="form-label">kb (Aspecificity tolerance)</label>
+                                <select class="form-select" id="kb" name="kb" required>
+                                    <option value="20" selected>20 - Forbid</option>
+                                    <option value="10">10 - Penalty</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="col-md-6">
+                    <div class="card">
+                        <div class="card-header d-flex justify-content-between align-items-center">
+                            <h5>Sequence Groups</h5>
+                            <button type="button" class="btn btn-success btn-sm" id="createGroupBtn">Create New Group</button>
+                        </div>
+                        <div class="card-body">
+                            <input type="hidden" id="group_count" name="group_count" value="0">
+                            <div id="groupsContainer">
+                                <!-- Groups will be added here dynamically -->
+                            </div>
+
+                            <div class="alert alert-info mt-3" id="noGroupsMessage">
+                                No groups defined yet. Use the controls to create groups and assign sequences.
+                            </div>
+                        </div>
+                        <div class="card-footer">
+                            <button type="submit" class="btn btn-primary">Run Scan</button>
+                            <a href="/" class="btn btn-link">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let groupCounter = 0;
+            const targetGroupSelect = document.getElementById('targetGroupSelect');
+            const addSelectedBtn = document.getElementById('addSelectedToGroup');
+            
+            // Track assigned sequences
+            const assignedSequences = new Set();
+            
+            // Create Group button click handler
+            document.getElementById('createGroupBtn').addEventListener('click', function() {
+                createNewGroup();
+            });
+            
+            // Add selected sequences to group button click handler
+            document.getElementById('addSelectedToGroup').addEventListener('click', function() {
+                const selectedGroupId = targetGroupSelect.value;
+                if (selectedGroupId !== '') {
+                    addSelectedSequencesToGroup(selectedGroupId);
+                } else {
+                    alert('Please select a group first');
+                }
+            });
+            
+            // Select All button click handler
+            document.getElementById('selectAll').addEventListener('click', function() {
+                const checkboxes = document.querySelectorAll('.sequence-checkbox');
+                checkboxes.forEach(checkbox => checkbox.checked = true);
+            });
+            
+            // Deselect All button click handler
+            document.getElementById('deselectAll').addEventListener('click', function() {
+                const checkboxes = document.querySelectorAll('.sequence-checkbox');
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+            });
+            
+            // Function to create a new group
+            function createNewGroup() {
+                const groupsContainer = document.getElementById('groupsContainer');
+                const groupCountInput = document.getElementById('group_count');
+                
+                const groupDiv = document.createElement('div');
+                groupDiv.className = 'group-container';
+                groupDiv.id = `group_container_${groupCounter}`;
+                
+                groupDiv.innerHTML = `
+                    <div class="d-flex justify-content-between mb-2">
+                        <h6>Group ${groupCounter + 1}</h6>
+                        <button type="button" class="btn btn-sm btn-outline-danger delete-group" data-group="${groupCounter}">Delete</button>
+                    </div>
+                    <div class="sequence-list mb-2" style="max-height: 150px; overflow-y: auto;">
+                        <div class="list-group" id="group_sequences_${groupCounter}">
+                            <div class="list-group-item text-center text-muted">No sequences in this group</div>
+                        </div>
+                    </div>
+                `;
+                
+                groupsContainer.appendChild(groupDiv);
+                
+                // Add event listener to delete button
+                const deleteBtn = groupDiv.querySelector('.delete-group');
+                deleteBtn.addEventListener('click', function() {
+                    const groupId = this.getAttribute('data-group');
+                    deleteGroup(groupId);
+                });
+                
+                // Update group count
+                groupCounter++;
+                groupCountInput.value = groupCounter;
+                
+                // Hide no groups message if visible
+                document.getElementById('noGroupsMessage').style.display = 'none';
+                
+                // Update the target group dropdown
+                updateTargetGroupDropdown();
+                
+                // Automatically select the newly created group
+                targetGroupSelect.value = (groupCounter - 1).toString();
+                
+                // Enable the add button if it was disabled
+                if (addSelectedBtn.disabled) {
+                    addSelectedBtn.disabled = false;
+                }
+            }
+            
+            // Function to update the target group dropdown
+            function updateTargetGroupDropdown() {
+                // Clear existing options except the placeholder
+                while (targetGroupSelect.options.length > 1) {
+                    targetGroupSelect.remove(1);
+                }
+                
+                // Add options for each group
+                for (let i = 0; i < groupCounter; i++) {
+                    if (document.getElementById(`group_container_${i}`)) {
+                        const option = document.createElement('option');
+                        option.value = i;
+                        option.text = `Group ${i + 1}`;
+                        targetGroupSelect.add(option);
+                    }
+                }
+                
+                // Enable/disable the select based on whether there are groups
+                targetGroupSelect.disabled = groupCounter === 0;
+            }
+            
+            // Function to add selected sequences to a group
+            function addSelectedSequencesToGroup(groupId) {
+                const selectedSequences = [];
+                const checkboxes = document.querySelectorAll('.sequence-checkbox:checked');
+                
+                if (checkboxes.length === 0) {
+                    alert('Please select at least one sequence');
+                    return;
+                }
+                
+                // Collect all selected sequences
+                checkboxes.forEach(checkbox => {
+                    selectedSequences.push({
+                        id: checkbox.value,
+                        text: checkbox.nextElementSibling.textContent.trim()
+                    });
+                });
+                
+                const groupSequencesContainer = document.getElementById(`group_sequences_${groupId}`);
+                
+                // Clear "no sequences" message if it exists
+                const noSequencesMessage = groupSequencesContainer.querySelector('.text-muted');
+                if (noSequencesMessage) {
+                    groupSequencesContainer.innerHTML = '';
+                }
+                
+                // Add sequences to group
+                selectedSequences.forEach(seq => {
+                    // Check if the sequence is already in the group
+                    const existingSeq = Array.from(groupSequencesContainer.querySelectorAll('input[type="hidden"]'))
+                        .find(input => input.value === seq.id);
+                    
+                    if (!existingSeq) {
+                        const seqDiv = document.createElement('div');
+                        seqDiv.className = 'list-group-item d-flex justify-content-between align-items-center';
+                        seqDiv.innerHTML = `
+                            ${seq.text}
+                            <input type="hidden" name="group_${groupId}" value="${seq.id}">
+                            <button type="button" class="btn btn-sm btn-outline-danger remove-seq" data-seq-id="${seq.id}">×</button>
+                        `;
+                        groupSequencesContainer.appendChild(seqDiv);
+                        
+                        // Add this sequence ID to the assigned sequences
+                        assignedSequences.add(seq.id);
+                        
+                        // Hide this sequence in the available list
+                        const seqItemInList = document.getElementById(`seq_${seq.id}`).closest('.list-group-item');
+                        seqItemInList.classList.add('hidden-sequence');
+                        
+                        // Add event listener to remove button
+                        const removeBtn = seqDiv.querySelector('.remove-seq');
+                        removeBtn.addEventListener('click', function() {
+                            // Get the sequence ID to be removed
+                            const removedSeqId = this.getAttribute('data-seq-id');
+                            
+                            // Remove from assigned sequences
+                            assignedSequences.delete(removedSeqId);
+                            
+                            // Show the sequence again in the available list
+                            const seqToShow = document.getElementById(`seq_${removedSeqId}`).closest('.list-group-item');
+                            seqToShow.classList.remove('hidden-sequence');
+                            
+                            // Remove from group
+                            seqDiv.remove();
+                            
+                            // Check if the group is now empty
+                            if (groupSequencesContainer.children.length === 0) {
+                                groupSequencesContainer.innerHTML = '<div class="list-group-item text-center text-muted">No sequences in this group</div>';
+                            }
+                        });
+                    }
+                });
+                
+                // Uncheck all checkboxes
+                checkboxes.forEach(checkbox => checkbox.checked = false);
+            }
+            
+            // Function to delete a group
+            function deleteGroup(groupId) {
+                const groupContainer = document.getElementById(`group_container_${groupId}`);
+                
+                if (groupContainer) {
+                    // Get all sequences in this group and make them visible again
+                    const sequenceInputs = groupContainer.querySelectorAll('input[type="hidden"]');
+                    sequenceInputs.forEach(input => {
+                        const seqId = input.value;
+                        
+                        // Remove from assigned sequences
+                        assignedSequences.delete(seqId);
+                        
+                        // Show the sequence in the available list
+                        const seqToShow = document.getElementById(`seq_${seqId}`).closest('.list-group-item');
+                        seqToShow.classList.remove('hidden-sequence');
+                    });
+                    
+                    // Remove the group container
+                    groupContainer.remove();
+                }
+                
+                // Check if there are no more groups
+                const groupsContainer = document.getElementById('groupsContainer');
+                if (groupsContainer.children.length === 0) {
+                    document.getElementById('noGroupsMessage').style.display = 'block';
+                    groupCounter = 0;
+                    document.getElementById('group_count').value = 0;
+                }
+                
+                // Update the dropdown
+                updateTargetGroupDropdown();
+            }
+        });
+    </script>
+</body>
+</html>

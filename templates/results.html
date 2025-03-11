@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Alignment Analysis Results</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            padding-top: 2rem;
+            padding-bottom: 2rem;
+        }
+        .header {
+            padding-bottom: 1rem;
+            border-bottom: 1px solid #e5e5e5;
+            margin-bottom: 2rem;
+        }
+        #results-container {
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            overflow: auto;
+        }
+        /* Ensure the embedded alignment HTML is displayed properly */
+        #results-container pre,
+        #results-container code,
+        #results-container .sequence {
+            white-space: pre;
+            font-family: monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2>Analysis Results</h2>
+            <p class="lead">Alignment scan complete</p>
+        </div>
+
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        <div class="alert alert-danger">
+            <ul class="mb-0">
+            {% for message in messages %}
+                <li>{{ message }}</li>
+            {% endfor %}
+            </ul>
+        </div>
+        {% endif %}
+        {% endwith %}
+
+        <div class="row mb-4">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Parameters Used</h5>
+                    </div>
+                    <div class="card-body">
+                        <form action="/update_parameters" method="post" id="updateParamsForm">
+                            <dl class="row">
+                                <dt class="col-sm-4">ka (Consensus):</dt>
+                                <dd class="col-sm-8">
+                                    <select class="form-select mb-2" id="ka" name="ka" required>
+                                        <option value="20" {% if ka == 20 %}selected{% endif %}>20 - Strict</option>
+                                        <option value="10" {% if ka == 10 %}selected{% endif %}>10 - High (Majority rule high)</option>
+                                        <option value="3" {% if ka == 3 %}selected{% endif %}>3 - Low (Majority rule low)</option>
+                                    </select>
+                                </dd>
+                                
+                                <dt class="col-sm-4">kb (Aspecificity):</dt>
+                                <dd class="col-sm-8">
+                                    <select class="form-select mb-2" id="kb" name="kb" required>
+                                        <option value="20" {% if kb == 20 %}selected{% endif %}>20 - Forbid</option>
+                                        <option value="10" {% if kb == 10 %}selected{% endif %}>10 - Penalty</option>
+                                    </select>
+                                </dd>
+                            </dl>
+                            <button type="submit" class="btn btn-primary mt-2">Update Parameters</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Actions</h5>
+                    </div>
+                    <div class="card-body">
+                        <a href="/download_results" class="btn btn-success">Download Results</a>
+                        <a href="/" class="btn btn-primary">New Analysis</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-header">
+                        <h5>Color-Masked Alignment</h5>
+                    </div>
+                    <div class="card-body p-0">
+                        <div id="results-container">
+                            <iframe id="results-frame" style="width: 100%; height: 600px; border: none;"></iframe>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Load the HTML content into the iframe
+            const iframe = document.getElementById('results-frame');
+            const doc = iframe.contentWindow.document;
+            doc.open();
+            doc.write(`{{ html_content|safe }}`);
+            doc.close();
+        });
+    </script>
+</body>
+</html>
