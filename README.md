@@ -106,7 +106,7 @@ aliscan.scores2html(state, "results.html")
 
 The output alignment is color-coded based on the calculated scores:
 
-- **Black**: Score < 0.5
+- **White**: Score < 0.5
 - **Blue**: Score between 0.5 and 0.7
 - **Green**: Score between 0.7 and 0.8
 - **Yellow**: Score between 0.8 and 0.9
