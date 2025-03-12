@@ -1,4 +1,4 @@
-# Aliscan (v1.1)
+# Aliscan
 
 ## Overview
 
