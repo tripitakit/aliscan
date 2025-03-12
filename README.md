@@ -87,7 +87,7 @@ Where:
 
 ## Formula Editing Functionality
 
-AliScan includes a customizable scoring formula feature that allows you to fine-tune how sequence alignments are evaluated:
+Aliscan includes a customizable scoring formula feature that allows you to fine-tune how sequence alignments are evaluated:
 
 ### Available Variables and Coefficients
 
