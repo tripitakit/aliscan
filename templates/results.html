@@ -45,7 +45,8 @@
             margin-bottom: 10px;
         }
         .custom-value-input {
-            max-width: 100px;
+            max-width: 180px;
+            margin-top: 10px;
         }
         .input-group-text {
             font-size: 0.9rem;
@@ -95,38 +96,41 @@
                         <form action="/update_parameters" method="post" id="updateParamsForm">
                             <div class="row">
                                 <div class="col-md-6">
-                                    <dl class="row">
-                                        <dt class="col-sm-4">ka (Consensus):</dt>
-                                        <dd class="col-sm-8">
-                                            <div class="mb-2">
-                                                <select class="form-select mb-2" id="ka_preset" name="ka_preset">
-                                                    <option value="20" {% if ka == 20 %}selected{% endif %}>20 - Strict</option>
-                                                    <option value="10" {% if ka == 10 %}selected{% endif %}>10 - High (Majority rule high)</option>
-                                                    <option value="3" {% if ka == 3 %}selected{% endif %}>3 - Low (Majority rule low)</option>
-                                                    <option value="custom" {% if ka not in [3, 10, 20] %}selected{% endif %}>Custom value</option>
-                                                </select>
+                                    <div class="mb-3">
+                                        <label for="ka_preset" class="form-label"><b>ka (Consensus):</b></label>
+                                        <select class="form-select mb-2" id="ka_preset" name="ka_preset">
+                                            <option value="20" {% if ka == 20 %}selected{% endif %}>20 - Strict</option>
+                                            <option value="10" {% if ka == 10 %}selected{% endif %}>10 - High (Majority rule high)</option>
+                                            <option value="3" {% if ka == 3 %}selected{% endif %}>3 - Low (Majority rule low)</option>
+                                            <option value="custom" {% if ka not in [3, 10, 20] %}selected{% endif %}>Custom value</option>
+                                        </select>
+                                        <div class="row align-items-center">
+                                            <div class="col-auto">
+                                                <label for="ka" class="col-form-label">Custom ka:</label>
                                             </div>
-                                            <div class="input-group custom-value-input">
-                                                <span class="input-group-text">Custom ka:</span>
+                                            <div class="col">
                                                 <input type="number" class="form-control" id="ka" name="ka" min="0" max="100" step="1" value="{{ ka|int }}" required onchange="this.value = Math.round(this.value)">
                                             </div>
-                                        </dd>
-                                        
-                                        <dt class="col-sm-4">kb (Aspecificity):</dt>
-                                        <dd class="col-sm-8">
-                                            <div class="mb-2">
-                                                <select class="form-select mb-2" id="kb_preset" name="kb_preset">
-                                                    <option value="20" {% if kb == 20 %}selected{% endif %}>20 - Forbid</option>
-                                                    <option value="10" {% if kb == 10 %}selected{% endif %}>10 - Penalty</option>
-                                                    <option value="custom" {% if kb not in [10, 20] %}selected{% endif %}>Custom value</option>
-                                                </select>
+                                        </div>
+                                    </div>
+
+                                    <div class="mb-3">
+                                        <label for="kb_preset" class="form-label"><b>kb (Aspecificity):</b></label>
+                                        <select class="form-select mb-2" id="kb_preset" name="kb_preset">
+                                            <option value="20" {% if kb == 20 %}selected{% endif %}>20 - Forbid</option>
+                                            <option value="10" {% if kb == 10 %}selected{% endif %}>10 - Penalty</option>
+                                            <option value="0" {% if kb == 0 %}selected{% endif %}>0 - Allow</option>
+                                            <option value="custom" {% if kb not in [0, 10, 20] %}selected{% endif %}>Custom value</option>
+                                        </select>
+                                        <div class="row align-items-center">
+                                            <div class="col-auto">
+                                                <label for="kb" class="col-form-label">Custom kb:</label>
                                             </div>
-                                            <div class="input-group custom-value-input">
-                                                <span class="input-group-text">Custom kb:</span>
+                                            <div class="col">
                                                 <input type="number" class="form-control" id="kb" name="kb" min="0" max="100" step="1" value="{{ kb|int }}" required onchange="this.value = Math.round(this.value)">
                                             </div>
-                                        </dd>
-                                    </dl>
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="col-md-6">
                                     <div class="mb-3">
@@ -228,7 +232,7 @@
             // Handle kb input change to update dropdown
             document.getElementById('kb').addEventListener('change', function() {
                 const kbPreset = document.getElementById('kb_preset');
-                const presetValues = ['10', '20'];
+                const presetValues = ['0', '10', '20'];
                 if (presetValues.includes(this.value)) {
                     kbPreset.value = this.value;
                 } else {

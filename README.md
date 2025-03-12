@@ -71,6 +71,7 @@ Aliscan uses two main parameters to control the analysis:
 - **kb (Aspecificity tolerance)**:
   - 20: Forbid appearance in outgroup
   - 10: Penalize appearance in outgroup
+  - 0: Allow appearance in outgroup (no penalty)
   - **Custom values**: Any value between 0-100 can be set using the numeric input
 
 ### Scoring Formula
