@@ -1,4 +1,4 @@
-# aliscan (v1.0)
+# aliscan (v1.1)
 
 ## Overview
 
@@ -11,6 +11,8 @@ Aliscan is a tool for analyzing nucleotide sequence alignments to identify signa
 - **Configurable Parameters**: Adjust scoring parameters for consensus (ka) and aspecificity (kb)
 - **Visual Results**: Color-masked alignment visualization with score highlighting
 - **Downloadable Results**: Export analysis results in HTML format
+- **Persistent Storage**: SQLite database for reliable session state management
+- **Multi-user Support**: Separate sessions for concurrent users
 
 ## Requirements
 
@@ -18,6 +20,7 @@ Aliscan is a tool for analyzing nucleotide sequence alignments to identify signa
 - **Flask 2.2.3**: Web framework for building the application's interface
 - **Werkzeug 2.2.3**: WSGI utility library for handling HTTP requests and serving the web application
 - **BioPython 1.81**: Library for biological computation, used for processing and analyzing nucleotide sequences
+- **SQLite3**: Included in Python's standard library, used for state persistence
 
 ## Installation
 
@@ -102,6 +105,22 @@ state = aliscan.scan(state)
 aliscan.scores2html(state, "results.html")
 ```
 
+## Architecture
+
+Aliscan consists of three main components:
+
+1. **aliscan.py**: Core library that handles sequence alignment processing and scoring
+2. **app.py**: Flask web application that provides the user interface and handles HTTP requests
+3. **db.py**: Database module that manages state persistence using SQLite
+
+The application uses a functional approach where the state is never modified in-place but instead each function returns a new state object. This state is stored in an SQLite database between requests for persistence.
+
+## Data Storage
+
+- **Session data**: Stored in an SQLite database (`aliscan.db`)
+- **Uploaded files**: Stored in the `uploads` directory
+- **Results**: Generated as HTML files in the `uploads` directory with unique session IDs
+
 ## Color Coding
 
 The output alignment is color-coded based on the calculated scores:
@@ -122,7 +141,7 @@ Contributions to improve aliscan are welcome. Please feel free to submit a Pull 
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the GNU General Public License v3.0 - see the [COPYING](COPYING) file for details.
 
 ## Contact
 
