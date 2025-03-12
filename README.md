@@ -2,7 +2,9 @@
 
 ## Overview
 
-Aliscan is a tool for analyzing nucleotide sequence alignments to identify signature patterns. It provides a web interface for uploading, configuring, and visualizing sequence alignments with color-coded scoring based on nucleotide position significance.
+Aliscan is a tool for visually analyzing nucleotide sequence alignments to identify signature patterns. It provides a web interface for uploading, configuring, and visualizing sequence alignments with color-coded scoring based on nucleotide position significance. It supports group-based analysis, allowing users to define custom sequence groups for comparative analysis.
+Its scoring formula can be customized to fine-tune the analysis based on specific research requirements.
+Aliscan can be used to identify conserved regions, detect mutations, and compare sequence patterns across multiple groups of sequences in a user-friendly and interactive manner. It is designed to be easy to use for biologists and researchers who need to to design taxon-specific PCR primers and qPCR/RT-qPCR probes, identify mutations, or study sequence conservation.
 
 ## Features
 
@@ -176,3 +178,11 @@ This project is licensed under the GNU General Public License v3.0 - see the [CO
 
 Author: Patrick De Marta  
 Email: patrick.demarta@gmail.com
+
+## Acknowledgements
+
+This project is complete rewrite of the original Aliscan tool:
+
+```
+Aliscan. An interactive tool to assist the design of sequence alignment-based probes. P. De Marta, G. Firrao. Cost Action 853 - Agricultural Biomarkers for Array Technology. Wadensvill 2002.
+```
