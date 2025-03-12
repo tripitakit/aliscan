@@ -111,7 +111,115 @@ This formula evaluates each position by penalizing positions with low ingroup co
 
 You can modify this formula in the results page to customize the alignment analysis to your specific research needs.
 
-## Example Usage (Python API)
+## Python API Reference
+
+Aliscan provides a Python API for programmatic access to its functionality:
+
+### State Management
+
+#### `create_state()`
+
+Creates a new empty state object.
+
+**Returns:**
+
+- A new state dictionary.
+
+#### `load_alignment(state, filepath)`
+
+Loads an alignment file into the state.
+
+**Parameters:**
+
+- `state`: The state dictionary.
+- `filepath`: Path to the alignment file in FASTA format.
+
+**Returns:**
+
+- Updated state with alignment data.
+
+#### `set_groups(state, groups)`
+
+Sets the sequence groups for analysis.
+
+**Parameters:**
+
+- `state`: The state dictionary.
+- `groups`: List of lists, where each inner list contains sequence indices for a group.
+
+**Returns:**
+
+- Updated state with group information.
+
+### Parameter Configuration
+
+#### `set_ka(state, ka)`
+
+Sets the consensus coefficient parameter.
+
+**Parameters:**
+
+- `state`: The state dictionary.
+- `ka`: Integer value for the consensus coefficient (typically 3, 10, or 20, but can be any integer between 0-100).
+
+**Returns:**
+
+- Updated state with new ka value.
+
+#### `set_kb(state, kb)`
+
+Sets the aspecificity tolerance parameter.
+
+**Parameters:**
+
+- `state`: The state dictionary.
+- `kb`: Integer value for the aspecificity tolerance (typically 10 or 20, but can be any integer between 0-100).
+
+**Returns:**
+
+- Updated state with new kb value.
+
+#### `set_scoring_formula(state, formula)`
+
+Sets a custom scoring formula.
+
+**Parameters:**
+
+- `state`: The state dictionary.
+- `formula`: String containing the formula using variables a, b, ka, kb.
+
+**Returns:**
+
+- Updated state with the new formula.
+
+### Analysis & Output
+
+#### `scan(state)`
+
+Performs the analysis using the current state configuration.
+
+**Parameters:**
+
+- `state`: The configured state dictionary.
+
+**Returns:**
+
+- Updated state with analysis results.
+
+#### `scores2html(state, output_filepath)`
+
+Generates HTML output from analysis results.
+
+**Parameters:**
+
+- `state`: The state dictionary with analysis results.
+- `output_filepath`: Path where the HTML output will be saved.
+
+**Returns:**
+
+- None (writes file to disk).
+
+## Python API - Usage Example
 
 ```python
 import aliscan
@@ -128,6 +236,9 @@ state = aliscan.set_groups(state, [[0, 1, 2], [3, 4, 5]])
 # Set analysis parameters
 state = aliscan.set_ka(state, 10)
 state = aliscan.set_kb(state, 10)
+
+# Set custom scoring formula (default expression provided as example)
+state = aliscan.set_scoring_formula(state, "1 - (ka*0.5)*(1-a) - (kb*0.1)*b")
 
 # Run the scan
 state = aliscan.scan(state)
