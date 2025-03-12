@@ -11,10 +11,13 @@ Aliscan can be used to identify conserved regions, detect mutations, and compare
 - **Web Interface**: Upload and analyze alignment files through a user-friendly web interface
 - **Group-Based Analysis**: Create custom sequence groups for comparative analysis
 - **Configurable Parameters**: Adjust scoring parameters for consensus (ka) and aspecificity (kb)
+- **Gaps and Unknown Bases Support**: Proper support for alignments containing gaps and unknown bases
+- **Custom Scoring Formula**: Modify the scoring formula to customize the analysis
 - **Visual Results**: Color-masked alignment visualization with score highlighting
 - **Downloadable Results**: Export analysis results in HTML format
 - **Persistent Storage**: SQLite database for reliable session state management
 - **Multi-user Support**: Separate sessions for concurrent users
+- **Python API**: Programmatic access to Aliscan functionality for automation and integration
 
 ## Requirements
 
@@ -266,7 +269,7 @@ The application uses a functional approach where the state is never modified in-
 
 The output alignment is color-coded based on the calculated scores:
 
-- **White**: Score < 0.5
+- **No Background**: Score < 0.5
 - **Blue**: Score between 0.5 and 0.7
 - **Green**: Score between 0.7 and 0.8
 - **Yellow**: Score between 0.8 and 0.9

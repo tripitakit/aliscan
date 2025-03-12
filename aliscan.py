@@ -77,6 +77,11 @@ def scan(state):
     # Create a copy of groups to avoid modifying original
     groups_copy = [group.copy() for group in state["groups"]]
     
+    # Ensure there are valid groups
+    if not groups_copy or all(len(group) == 0 for group in groups_copy):
+        print("Warning: No valid sequence groups defined")
+        return state
+    
     state["scores"] = reset_scores(state)
     sequence_length_range = range(state["seq_size"])
     
@@ -88,6 +93,10 @@ def scan(state):
                 outgroup.extend(group)
             groups_copy.append(ingroup)
             
+            # Skip calculations if ingroup is empty
+            if not ingroup:
+                continue
+                
             ingroup_frequencies = calculate_nt_freq(state, ingroup, position)
             outgroup_frequencies = calculate_nt_freq(state, outgroup, position)
             state = calculate_score(state, ingroup, position, ingroup_frequencies, outgroup_frequencies)
@@ -99,9 +108,20 @@ def reset_scores(state):
     return [[] for _ in range(state["num_of_seqs"])]
 
 def calculate_nt_freq(state, group, position):
-    """Calculate (a,c,t,g,-) frequencies at current position in group"""
+    """Calculate (a,c,t,g,-,n) frequencies at current position in group"""
     num_of_seqs_in_group = len(group)
-    a = c = t = g = gap = 0
+    # Return default frequencies if group is empty to avoid division by zero
+    if num_of_seqs_in_group == 0:
+        return {
+            "fA": 0,
+            "fT": 0,
+            "fC": 0,
+            "fG": 0,
+            "fgap": 0,
+            "fN": 0    # Add unknown base frequency
+        }
+    
+    a = c = t = g = gap = unknown = 0
     
     for seq_id in group:
         base_val = get_base(state, seq_id, position)
@@ -115,13 +135,17 @@ def calculate_nt_freq(state, group, position):
             g += 1
         elif base_val == "-":
             gap += 1
+        else:
+            # Count all non-ACTG bases as unknown (N, n, etc.)
+            unknown += 1
     
     return {
         "fA": a / num_of_seqs_in_group,
         "fT": t / num_of_seqs_in_group,
         "fC": c / num_of_seqs_in_group,
         "fG": g / num_of_seqs_in_group,
-        "fgap": gap / num_of_seqs_in_group
+        "fgap": gap / num_of_seqs_in_group,
+        "fN": unknown / num_of_seqs_in_group
     }
 
 def calculate_score(state, ingroup, position, ingroup_frequencies, outgroup_frequencies):
@@ -132,11 +156,14 @@ def calculate_score(state, ingroup, position, ingroup_frequencies, outgroup_freq
     state = state.copy()
     scores_copy = [score.copy() for score in state["scores"]]
     
-    # Remove math function imports as they're not needed for basic operations
-    
     for seq_id in ingroup:
         base_val = get_base(state, seq_id, position)
         a = b = 0
+        
+        # Handle unknown bases by assigning zero score immediately
+        if base_val not in "ACGT-":
+            scores_copy[seq_id].append(0)
+            continue
         
         if base_val == "A":
             a = ingroup_frequencies["fA"]
@@ -158,8 +185,17 @@ def calculate_score(state, ingroup, position, ingroup_frequencies, outgroup_freq
         ka = state["ka"]
         kb = state["kb"]
         
-        # Evaluate the scoring formula
-        score = eval(state["scoring_formula"])
+        try:
+            # Evaluate the scoring formula with safety check
+            score = eval(state["scoring_formula"])
+        except ZeroDivisionError:
+            # Handle division by zero cases
+            score = 0
+        except Exception as e:
+            # Handle other evaluation errors
+            print(f"Formula evaluation error: {e}")
+            score = 0
+        
         scores_copy[seq_id].append(score)
     
     state["scores"] = scores_copy
@@ -308,7 +344,11 @@ def paging(state):
 
 def get_base(state, seq_id, position):
     """Return the uppercase base given seq_id and position"""
-    return str(state["alignment"][seq_id].seq[position]).upper()
+    try:
+        return str(state["alignment"][seq_id].seq[position]).upper()
+    except (IndexError, AttributeError):
+        # Return "N" for any access errors (sequence too short, etc.)
+        return "N"
 
 def scores2csv(state, outfile):
     """Write the scores in a csv outfile"""
