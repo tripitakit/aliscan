@@ -36,6 +36,15 @@ git clone https://github.com/tripitakit/aliscan.git
 cd aliscan
 ```
 
+### Create a virtual environment
+
+It is recommended to use a virtual environment to manage dependencies. You can create and activate a virtual environment using the following commands:
+
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows use `venv\Scripts\activate`
+```
+
 ### Install dependencies
 
 ```bash
