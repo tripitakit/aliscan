@@ -44,7 +44,7 @@ pip install -r requirements.txt
 1. Start the web server:
 
 ```bash
-python app.py
+flask run
 ```
 
 2. Open a browser and navigate to `http://127.0.0.1:5000/`
