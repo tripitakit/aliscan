@@ -291,7 +291,7 @@ Email: patrick.demarta@gmail.com
 
 ## Acknowledgements
 
-This project is complete rewrite of the original Aliscan tool:
+This project is complete rewrite of the original Aliscan tool developed by P. De Marta and G. Firrao in 2002 for the Cost Action 853 - Agricultural Biomarkers for Array Technology. If you use Aliscan in your research, please cite the following reference:
 
 ```
 Aliscan. An interactive tool to assist the design of sequence alignment-based probes. P. De Marta, G. Firrao. Cost Action 853 - Agricultural Biomarkers for Array Technology. Wadensvill 2002.
