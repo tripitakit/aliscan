@@ -95,11 +95,9 @@ AliScan includes a customizable scoring formula feature that allows you to fine-
 - **ka**: Consensus coefficient (preset values of 20, 10, or 3, or any custom value between 0-100)
 - **kb**: Aspecificity tolerance (preset values of 20 or 10, or any custom value between 0-100)
 
-### Supported Math Functions
+### Valid Operations
 
 - Basic operations: `+`, `-`, `*`, `/`, `()` for grouping
-- Trigonometric: `sin`, `cos`, `tan`
-- Other functions: `abs`, `max`, `min`, `pow`, `round`
 
 ### Default Formula
 
