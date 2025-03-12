@@ -4,7 +4,7 @@
 
 Aliscan is a tool for visually analyzing nucleotide sequence alignments to identify signature patterns. It provides a web interface for uploading, configuring, and visualizing sequence alignments with color-coded scoring based on nucleotide position significance. It supports group-based analysis, allowing users to define custom sequence groups for comparative analysis.
 Its scoring formula can be customized to fine-tune the analysis based on specific research requirements.
-Aliscan can be used to identify conserved regions, detect mutations, and compare sequence patterns across multiple groups of sequences in a user-friendly and interactive manner. It is designed to be easy to use for biologists and researchers who need to to design taxon-specific PCR primers and qPCR/RT-qPCR probes, identify mutations, or study sequence conservation.
+Aliscan can be used to visualize conserved and variable regions, to compare sequence patterns across multiple groups of sequences in an interactive manner and especially to design taxon-specific PCR primers and qPCR/RT-qPCR probes.
 
 ## Features
 
