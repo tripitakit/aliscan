@@ -27,7 +27,7 @@ Aliscan is a tool for analyzing nucleotide sequence alignments to identify signa
 ### Clone the repository
 
 ```bash
-git clone https://github.com/username/aliscan.git
+git clone https://github.com/tripitakit/aliscan.git
 cd aliscan
 ```
 
