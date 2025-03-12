@@ -132,6 +132,10 @@ def calculate_score(state, ingroup, position, ingroup_frequencies, outgroup_freq
     state = state.copy()
     scores_copy = [score.copy() for score in state["scores"]]
     
+    # Import math functions for formula evaluation
+    from math import sin, cos, tan, pow
+    # Built-ins: abs, max, min, round are already available
+    
     for seq_id in ingroup:
         base_val = get_base(state, seq_id, position)
         a = b = 0

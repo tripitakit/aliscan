@@ -29,6 +29,27 @@
             white-space: pre;
             font-family: monospace;
         }
+        .html-results {
+            margin-top: 20px;
+            border: 1px solid #ddd;
+            padding: 20px;
+            border-radius: 5px;
+        }
+        .result-content {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+        .formula-help {
+            font-size: 0.9em;
+            color: #6c757d;
+            margin-bottom: 10px;
+        }
+        .custom-value-input {
+            max-width: 100px;
+        }
+        .input-group-text {
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
@@ -50,51 +71,95 @@
         {% endif %}
         {% endwith %}
 
+				<div class="row mb-4">
+					<div class="col-12">
+						<div class="card">
+							<div class="card-header">
+								<h5>Actions</h5>
+							</div>
+							<div class="card-body">
+								<a href="/download_results" class="btn btn-success">Download Results</a>
+								<a href="/" class="btn btn-primary">New Analysis</a>
+							</div>
+						</div>
+					</div>
+				</div>
+
         <div class="row mb-4">
-            <div class="col-md-6">
+            <div class="col-12">
                 <div class="card">
                     <div class="card-header">
                         <h5>Parameters Used</h5>
                     </div>
                     <div class="card-body">
                         <form action="/update_parameters" method="post" id="updateParamsForm">
-                            <dl class="row">
-                                <dt class="col-sm-4">ka (Consensus):</dt>
-                                <dd class="col-sm-8">
-                                    <select class="form-select mb-2" id="ka" name="ka" required>
-                                        <option value="20" {% if ka == 20 %}selected{% endif %}>20 - Strict</option>
-                                        <option value="10" {% if ka == 10 %}selected{% endif %}>10 - High (Majority rule high)</option>
-                                        <option value="3" {% if ka == 3 %}selected{% endif %}>3 - Low (Majority rule low)</option>
-                                    </select>
-                                </dd>
-                                
-                                <dt class="col-sm-4">kb (Aspecificity):</dt>
-                                <dd class="col-sm-8">
-                                    <select class="form-select mb-2" id="kb" name="kb" required>
-                                        <option value="20" {% if kb == 20 %}selected{% endif %}>20 - Forbid</option>
-                                        <option value="10" {% if kb == 10 %}selected{% endif %}>10 - Penalty</option>
-                                    </select>
-                                </dd>
-                            </dl>
-                            <button type="submit" class="btn btn-primary mt-2">Update Parameters</button>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <dl class="row">
+                                        <dt class="col-sm-4">ka (Consensus):</dt>
+                                        <dd class="col-sm-8">
+                                            <div class="mb-2">
+                                                <select class="form-select mb-2" id="ka_preset" name="ka_preset">
+                                                    <option value="20" {% if ka == 20 %}selected{% endif %}>20 - Strict</option>
+                                                    <option value="10" {% if ka == 10 %}selected{% endif %}>10 - High (Majority rule high)</option>
+                                                    <option value="3" {% if ka == 3 %}selected{% endif %}>3 - Low (Majority rule low)</option>
+                                                    <option value="custom" {% if ka not in [3, 10, 20] %}selected{% endif %}>Custom value</option>
+                                                </select>
+                                            </div>
+                                            <div class="input-group custom-value-input">
+                                                <span class="input-group-text">Custom ka:</span>
+                                                <input type="number" class="form-control" id="ka" name="ka" min="0" max="100" step="1" value="{{ ka|int }}" required onchange="this.value = Math.round(this.value)">
+                                            </div>
+                                        </dd>
+                                        
+                                        <dt class="col-sm-4">kb (Aspecificity):</dt>
+                                        <dd class="col-sm-8">
+                                            <div class="mb-2">
+                                                <select class="form-select mb-2" id="kb_preset" name="kb_preset">
+                                                    <option value="20" {% if kb == 20 %}selected{% endif %}>20 - Forbid</option>
+                                                    <option value="10" {% if kb == 10 %}selected{% endif %}>10 - Penalty</option>
+                                                    <option value="custom" {% if kb not in [10, 20] %}selected{% endif %}>Custom value</option>
+                                                </select>
+                                            </div>
+                                            <div class="input-group custom-value-input">
+                                                <span class="input-group-text">Custom kb:</span>
+                                                <input type="number" class="form-control" id="kb" name="kb" min="0" max="100" step="1" value="{{ kb|int }}" required onchange="this.value = Math.round(this.value)">
+                                            </div>
+                                        </dd>
+                                    </dl>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="mb-3">
+                                        <label for="formula" class="form-label"><b>Scoring Formula:</b></label>
+                                        <div class="input-group">
+                                            <input type="text" class="form-control" id="formula" name="formula" value="{{ formula | default('1 - (ka*0.5)*(1-a) - (kb*0.1)*b') }}">
+                                            <button class="btn btn-outline-secondary" type="button" id="resetFormulaBtn" title="Reset to default formula">
+                                                <i class="bi bi-arrow-counterclockwise"></i> Reset
+                                            </button>
+                                        </div>
+                                        <div class="formula-help">
+                                            <p>Valid variables: <code>a</code> (frequency in ingroup), <code>b</code> (frequency in outgroup)</p>
+                                            <p>Valid coefficients: <code>ka</code> (consensus coefficient), <code>kb</code> (aspecificity tolerance)</p>
+                                            <p>Valid math functions: <code>sin</code>, <code>cos</code>, <code>tan</code> (trigonometric), <code>abs</code> (absolute value), <code>max</code>, <code>min</code> (maximum/minimum), <code>pow</code> (power), <code>round</code> (round to integer)</p>
+                                        </div>
+                                        <div id="formulaValidation" class="invalid-feedback">
+                                            Invalid formula. Please use only the allowed variables and coefficients.
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-12">
+                                    <button type="submit" class="btn btn-primary mt-2">Apply Parameters</button>
+                                </div>
+                            </div>
                         </form>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-6">
-                <div class="card">
-                    <div class="card-header">
-                        <h5>Actions</h5>
-                    </div>
-                    <div class="card-body">
-                        <a href="/download_results" class="btn btn-success">Download Results</a>
-                        <a href="/" class="btn btn-primary">New Analysis</a>
                     </div>
                 </div>
             </div>
         </div>
 
-        <div class="row">
+				<div class="row">
             <div class="col-12">
                 <div class="card">
                     <div class="card-header">
@@ -119,6 +184,91 @@
             doc.open();
             doc.write(`{{ html_content|safe }}`);
             doc.close();
+            
+            // Add event listener for the reset formula button
+            const resetFormulaBtn = document.getElementById('resetFormulaBtn');
+            const formulaInput = document.getElementById('formula');
+            
+            resetFormulaBtn.addEventListener('click', function() {
+                // Reset formula to default value
+                formulaInput.value = '1 - (ka*0.5)*(1-a) - (kb*0.1)*b';
+                
+                // Remove any validation errors
+                formulaInput.classList.remove('is-invalid');
+                document.getElementById('formulaValidation').style.display = 'none';
+            });
+
+            // Handle ka preset dropdown change
+            document.getElementById('ka_preset').addEventListener('change', function() {
+                const kaInput = document.getElementById('ka');
+                if (this.value !== 'custom') {
+                    kaInput.value = this.value;
+                }
+            });
+            
+            // Handle kb preset dropdown change
+            document.getElementById('kb_preset').addEventListener('change', function() {
+                const kbInput = document.getElementById('kb');
+                if (this.value !== 'custom') {
+                    kbInput.value = this.value;
+                }
+            });
+            
+            // Handle ka input change to update dropdown
+            document.getElementById('ka').addEventListener('change', function() {
+                const kaPreset = document.getElementById('ka_preset');
+                const presetValues = ['3', '10', '20'];
+                if (presetValues.includes(this.value)) {
+                    kaPreset.value = this.value;
+                } else {
+                    kaPreset.value = 'custom';
+                }
+            });
+            
+            // Handle kb input change to update dropdown
+            document.getElementById('kb').addEventListener('change', function() {
+                const kbPreset = document.getElementById('kb_preset');
+                const presetValues = ['10', '20'];
+                if (presetValues.includes(this.value)) {
+                    kbPreset.value = this.value;
+                } else {
+                    kbPreset.value = 'custom';
+                }
+            });
+        });
+
+        // Client-side formula validation
+        document.getElementById('formula').addEventListener('input', function() {
+            const formula = this.value;
+            const formulaValidation = document.getElementById('formulaValidation');
+            
+            // Regular expression to find all variable names
+            const variableRegex = /[a-zA-Z_][a-zA-Z0-9_]*/g;
+            const matches = formula.match(variableRegex) || [];
+            
+            // Allow these variables and common math functions
+            const allowedTerms = ['a', 'b', 'ka', 'kb', 'sin', 'cos', 'tan', 'abs', 'max', 'min', 'pow', 'round'];
+            
+            // Find invalid variables
+            const invalidVars = matches.filter(match => !allowedTerms.includes(match));
+            
+            // Check for dangerous patterns
+            const dangerousPatterns = ['import', 'exec', 'eval', 'compile', 'open', '__'];
+            const hasDangerousPattern = dangerousPatterns.some(pattern => formula.includes(pattern));
+            
+            if (invalidVars.length > 0 || hasDangerousPattern) {
+                this.classList.add('is-invalid');
+                formulaValidation.style.display = 'block';
+                
+                if (invalidVars.length > 0) {
+                    formulaValidation.textContent = `Invalid variables: ${invalidVars.join(', ')}`;
+                } else {
+                    formulaValidation.textContent = 'Formula contains disallowed terms';
+                }
+            } else {
+                this.classList.remove('is-invalid');
+                formulaValidation.style.display = 'none';
+            }
         });
     </script>
 </body>

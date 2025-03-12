@@ -64,10 +64,12 @@ Aliscan uses two main parameters to control the analysis:
   - 20: Strict consensus requirement
   - 10: High consensus (majority rule high)
   - 3: Low consensus (majority rule low)
+  - **Custom values**: Any value between 0-100 can be set using the numeric input
 
 - **kb (Aspecificity tolerance)**:
   - 20: Forbid appearance in outgroup
   - 10: Penalize appearance in outgroup
+  - **Custom values**: Any value between 0-100 can be set using the numeric input
 
 ### Scoring Formula
 
@@ -79,6 +81,33 @@ Where:
 - **b**: frequency of the nucleotide in the outgroup (aspecificity)
 - **ka**: consensus coefficient
 - **kb**: aspecificity tolerance coefficient
+
+## Formula Editing Functionality
+
+AliScan includes a customizable scoring formula feature that allows you to fine-tune how sequence alignments are evaluated:
+
+### Available Variables and Coefficients
+
+- **a**: Frequency of a residue in the ingroup (0-1)
+- **b**: Frequency of a residue in the outgroup (0-1)
+- **ka**: Consensus coefficient (preset values of 20, 10, or 3, or any custom value between 0-100)
+- **kb**: Aspecificity tolerance (preset values of 20 or 10, or any custom value between 0-100)
+
+### Supported Math Functions
+
+- Basic operations: `+`, `-`, `*`, `/`, `()` for grouping
+- Trigonometric: `sin`, `cos`, `tan`
+- Other functions: `abs`, `max`, `min`, `pow`, `round`
+
+### Default Formula
+
+```
+1 - (ka*0.5)*(1-a) - (kb*0.1)*b
+```
+
+This formula evaluates each position by penalizing positions with low ingroup consensus (first term) and high outgroup frequency (second term).
+
+You can modify this formula in the results page to customize the alignment analysis to your specific research needs.
 
 ## Example Usage (Python API)
 
